@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   @unique
+  password   String
+  role       Role     @default(USER)
+  name       String?
+  contact    String?  
+  email      String?  
+  location   String? 
+  companyId  Int?
+  createdAt  DateTime @default(now())
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  image     String
+  companies  Company[] @relation("CompanyCategories")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+  COMPANY_ADMIN
+}
+
+
+model Company {
+  id           Int         @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  password     String
+  status       CompanyStatus     @default(PENDING)
+  location     String?
+  phone        String?
+  email        String?
+  description  String?
+  logo         String?
+  categories   Category[]  @relation("CompanyCategories")
+  projects     Project[]
+  facebook     String?
+  instagram    String?
+  linkedin     String?
+  twitter      String?
+  website      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  viewCount    Int         @default(0)
+}
+
+enum CompanyStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  image       String
+  location    String?
+  year        Int       
+  company     Company    @relation(fields: [companyId], references: [id])
+  companyId   Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
