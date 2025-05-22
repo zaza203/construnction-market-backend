@@ -16,7 +16,7 @@ export const createCategory = async (req, res) => {
   const { name } = req.body;
   const user = req.user;
 
-  if (user.role !== 'ADMIN') {
+  if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -29,6 +29,16 @@ export const createCategory = async (req, res) => {
 
     res.status(201).json(category);
   } catch (err) {
+    if (req.file) {
+          const filePath = path.join(process.cwd(), 'uploads', 'companies', req.file.filename);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error('Error deleting file:', unlinkErr);
+            } else {
+              console.log('File deleted due to DB error:', filePath);
+            }
+          });
+        }
     res.status(500).json({ error: err.message });
   }
 };
@@ -38,7 +48,7 @@ export const updateCategory = async (req, res) => {
   const { name } = req.body;
   const user = req.user;
 
-  if (user.role !== 'ADMIN') {
+  if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -67,7 +77,7 @@ export const deleteCategory = async (req, res) => {
     where: { id: parseInt(categoryId) },
   });
 
-  if (user.role !== 'ADMIN') {
+  if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 

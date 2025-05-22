@@ -5,7 +5,7 @@ import path from 'path';
 export const listAllProjects = async (req, res) => {
     const requester = req.user;
 
-    if (requester.role !== 'ADMIN') {
+    if (requester.role !== 'ADMIN' && requester.role !== 'SUPER_ADMIN') {
         return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -34,6 +34,8 @@ export const listProjects = async (req, res) => {
     const projects = await prisma.project.findMany({
       where: filter,
     });
+
+    console.log('FETCHING PROJECTS WITH COMPANY ID:', companyId);
 
     res.json(projects);
   } catch (err) {
@@ -79,7 +81,17 @@ export const createProject = async (req, res) => {
 
     res.status(201).json(project);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).js
+    if (req.file) {
+      const filePath = path.join(process.cwd(), 'uploads', 'companies', req.file.filename);
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Error deleting file:', unlinkErr);
+        } else {
+          console.log('File deleted due to DB error:', filePath);
+        }
+      });
+    }on({ error: err.message });
   }
 };
 

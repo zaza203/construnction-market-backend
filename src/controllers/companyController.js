@@ -99,6 +99,16 @@ export const createCompany = async (req, res) => {
 
     res.status(201).json(company);
   } catch (err) {
+    if (req.file) {
+      const filePath = path.join(process.cwd(), 'uploads', 'companies', req.file.filename);
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Error deleting file:', unlinkErr);
+        } else {
+          console.log('File deleted due to DB error:', filePath);
+        }
+      });
+    }
     res.status(500).json({ error: err.message });
   }
 };
@@ -125,7 +135,7 @@ export const updateCompany = async (req, res) => {
   if (!company) return res.status(404).json({ error: 'Company not found' });
 
 
-  if ((role == 'ADMIN' || role == 'COMPANY_ADMIN') && company.username == userName) {
+  if (role == 'ADMIN' || role == 'SUPER_ADMIN' || (role == 'COMPANY_ADMIN' && company.username == userName)) {
     try {
       let updatedData = { ...req.body };
 
@@ -156,7 +166,7 @@ export const updateCompanyStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  if (req.user.role !== 'ADMIN')
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN')
     return res.status(403).json({ error: 'Admin only' });
 
   const company = await prisma.company.findUnique({ where: { id: parseInt(id) } });
@@ -196,7 +206,7 @@ export const deleteCompany = async (req, res) => {
 
   if (!company) return res.status(404).json({ error: 'Company not found' });
 
-  if (role !== 'ADMIN' && company.username !== userName)
+  if (role !== 'ADMIN' && role !== 'SUPER_ADMIN')
     return res.status(403).json({ error: 'Unauthorized' });
 
   try {

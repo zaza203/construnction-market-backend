@@ -30,7 +30,9 @@ model Category {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
+  CUSTOMER_SERVICE
   USER
   COMPANY_ADMIN
 }

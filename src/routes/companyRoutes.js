@@ -13,7 +13,7 @@ import {
 } from '../controllers/companyController.js';
 import { listAllProjects } from '../controllers/projectController.js';
 import projectRoutes from './projectRoutes.js';
-import { upload } from '../middlewares/uploadCompany.js';
+import { upload, handleUploadErrors } from '../middlewares/uploadCompany.js';
 import { authenticateToken } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -21,13 +21,13 @@ const router = express.Router();
 router.get('/projects', authenticateToken, listAllProjects)
 router.get('/', listCompanies);
 router.get('/:username', getCompanyByUsername);
-router.post('/', upload.single('logo'), createCompany);
+router.post('/', upload.single('logo'), handleUploadErrors, createCompany);
 router.post('/:id/increment-view', incrementCompanyViewCount);
 router.get('/category/:categoryId', getCompaniesByCategory);
 router.get('/view-count/featured', getCompanyWithLowestViews);
 router.get('/:username/projects', getProjectsByCompanyUsername);
 
-router.put('/:id', authenticateToken, upload.single('logo'), updateCompany);
+router.put('/:id', authenticateToken, upload.single('logo'), handleUploadErrors, updateCompany);
 router.patch('/:id/status', authenticateToken, updateCompanyStatus);
 router.delete('/:id', authenticateToken, deleteCompany);
 

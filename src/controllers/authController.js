@@ -83,7 +83,7 @@ export const updateUser = async (req, res) => {
   const { name, contact, email, location } = req.body;
   const requester = req.user;
 
-  if (requester.id !== userId && requester.role !== 'ADMIN') {
+  if (requester.id !== userId && requester.role !== 'ADMIN' && requester.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -103,7 +103,7 @@ export const deleteUser = async (req, res) => {
   const userId = parseInt(req.params.id);
   const requester = req.user;
 
-  if (requester.id !== userId && requester.role !== 'ADMIN') {
+  if (requester.role !== 'ADMIN' && requester.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -119,7 +119,7 @@ export const deleteUser = async (req, res) => {
 export const listUsers = async (req, res) => {
   const requester = req.user;
 
-  if (requester.role !== 'ADMIN') {
+  if (requester.role !== 'ADMIN' && requester.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
