@@ -46,13 +46,6 @@ export const getCompaniesByCategory = async (req, res) => {
       }
     });
 
-    if (!companies || companies.length === 0) {
-      return res.status(404).json({
-        error: 'No companies found for this category',
-        categoryId: parseInt(categoryId)
-      });
-    }
-
     res.json(companies);
   } catch (err) {
     console.error('Error fetching companies by category:', err);
@@ -139,6 +132,19 @@ export const updateCompany = async (req, res) => {
     try {
       let updatedData = { ...req.body };
 
+      let categoryIds = [];
+      try {
+        if (typeof req.body.categoryIds === 'string') {
+          categoryIds = JSON.parse(req.body.categoryIds);
+        } else if (Array.isArray(req.body.categoryIds)) {
+          categoryIds = req.body.categoryIds;
+        }
+      } catch (err) {
+        console.error('Error parsing categoryIds:', err);
+        return res.status(400).json({ error: 'Invalid categoryIds format' });
+      }
+      delete updatedData.categoryIds;
+
       if (req.file) {
         if (company.logo) {
           const oldLogoPath = path.join('public', company.logo);
@@ -150,7 +156,13 @@ export const updateCompany = async (req, res) => {
 
       const updated = await prisma.company.update({
         where: { id: parseInt(id) },
-        data: updatedData,
+        data: {
+          ...updatedData,
+          categories: {
+            set: categoryIds.map(id => ({ id: parseInt(id) })),
+          },
+        },
+
       });
 
       res.json(updated);
