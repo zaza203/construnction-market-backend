@@ -33,6 +33,10 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads'),
   }
 ))
 
+app.get('/', (req, res) => {
+  res.send('API is working!');
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
