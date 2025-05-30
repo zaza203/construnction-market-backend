@@ -44,7 +44,11 @@ model Company {
   username     String   @unique
   password     String
   status       CompanyStatus     @default(PENDING)
-  location     String?
+  location     String? 
+  latitude     Float?       @default(4.1548994)
+  longitude    Float?       @default(9.2252416)
+  country      String       @default("Cameroon")
+  country_fr   String       @default("Cameroun")
   phone        String?
   email        String?
   description  String?

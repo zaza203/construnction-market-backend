@@ -80,8 +80,9 @@ export const loginUser = async (req, res) => {
 // Update User
 export const updateUser = async (req, res) => {
   const userId = parseInt(req.params.id);
-  const { name, contact, email, location } = req.body;
+  const { name, contact, email, location, password } = req.body;
   const requester = req.user;
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   if (requester.id !== userId && requester.role !== 'ADMIN' && requester.role !== 'SUPER_ADMIN') {
     return res.status(403).json({ error: 'Unauthorized' });
@@ -90,7 +91,7 @@ export const updateUser = async (req, res) => {
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { name, contact, email, location },
+      data: { name, contact, email, location, password: hashedPassword },
     });
     res.json({ message: 'User updated' });
   } catch (err) {

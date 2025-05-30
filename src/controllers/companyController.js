@@ -2,6 +2,9 @@ import prisma from '../prisma/client.js';
 import bcrypt from 'bcrypt';
 import path from 'path';
 import fs from 'fs';
+import { geocodeLocation } from '../middlewares/fetchLocation.js';
+import { getDistance } from 'geolib';
+import { getCountryFromCoords } from '../middlewares/getCountry.js';
 
 
 export const listCompanies = async (_, res) => {
@@ -21,13 +24,67 @@ export const listCompanies = async (_, res) => {
   }
 };
 
+export const listCompaniesbyLocation = async (req, res) => {
+  const { lon, lat } = req.query;
+
+  if (!lon || !lat) {
+    return res.status(400).json({ error: 'Longitude and latitude are required.' });
+  }
+
+  try {
+    const userLat = parseFloat(lat);
+    const userLon = parseFloat(lon);
+
+    // 1. Fetch all companies with location info
+    const allCompanies = await prisma.company.findMany({
+      include: {
+        categories: true,
+        projects: true
+      }
+    });
+
+    // 2. Filter companies in the same country (assuming you store country or region)
+    const userCountry = await getCountryFromCoords(userLat, userLon);
+    const nearbyCompanies = allCompanies.filter(c => c.country === userCountry || c.country_fr === userCountry);
+    // 3. Sort by distance, then viewCount
+    const sortedCompanies = nearbyCompanies
+      .map(company => ({
+        ...company,
+        distance: getDistance(
+          { latitude: userLat, longitude: userLon },
+          { latitude: company.latitude, longitude: company.longitude }
+        )
+      }))
+      .sort((a, b) => {
+        // Sort primarily by distance, then by viewCount
+        if (a.distance === b.distance) {
+          return a.viewCount - b.viewCount;
+        }
+        return a.distance - b.distance;
+      });
+
+    res.json(sortedCompanies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const getCompaniesByCategory = async (req, res) => {
   const { categoryId } = req.params;
+  const { lon, lat } = req.query;
 
+  console.log("lon:", lon, "lat:", lat);
   try {
     if (isNaN(parseInt(categoryId))) {
       return res.status(400).json({ error: 'Invalid category ID' });
     }
+
+    if (!lon || !lat) {
+      return res.status(400).json({ error: 'Longitude and latitude are required.' });
+    }
+
+    const userLat = parseFloat(lat);
+    const userLon = parseFloat(lon);
 
     const companies = await prisma.company.findMany({
       where: {
@@ -41,12 +98,32 @@ export const getCompaniesByCategory = async (req, res) => {
         categories: true,
         projects: true
       },
-      orderBy: {
-        viewCount: 'asc'
-      }
     });
 
-    res.json(companies);
+console.log("companies:", companies);
+    // 2. Filter companies in the same country (assuming you store country or region)
+    const userCountry = await getCountryFromCoords(userLat, userLon);
+    console.log("userCountry:", userCountry);
+    const nearbyCompanies = companies.filter(c => c.country === userCountry || c.country_fr === userCountry);
+    console.log("nearbyCompanies:", nearbyCompanies.length);
+    // 3. Sort by distance, then viewCount
+    const sortedCompanies = nearbyCompanies
+      .map(company => ({
+        ...company,
+        distance: getDistance(
+          { latitude: userLat, longitude: userLon },
+          { latitude: company.latitude, longitude: company.longitude }
+        )
+      }))
+      .sort((a, b) => {
+        // Sort primarily by distance, then by viewCount
+        if (a.distance === b.distance) {
+          return a.viewCount - b.viewCount;
+        }
+        return a.distance - b.distance;
+      });
+console.log("sortedcompanies: ", sortedCompanies.length)
+    res.json(sortedCompanies);
   } catch (err) {
     console.error('Error fetching companies by category:', err);
     res.status(500).json({
@@ -66,6 +143,12 @@ export const createCompany = async (req, res) => {
 
     if (req.file) {
       data.logo = `/uploads/companies/${req.file.filename}`;
+    }
+
+    if (data.location) {
+      const { latitude, longitude } = await geocodeLocation(data.location);
+      data.latitude = latitude;
+      data.longitude = longitude;
     }
 
     let categoryIds = [];
@@ -131,6 +214,12 @@ export const updateCompany = async (req, res) => {
   if (role == 'ADMIN' || role == 'SUPER_ADMIN' || (role == 'COMPANY_ADMIN' && company.username == userName)) {
     try {
       let updatedData = { ...req.body };
+
+      if (updatedData.location && updatedData.location !== company.location) {
+        const { latitude, longitude } = await geocodeLocation(updatedData.location);
+        updatedData.latitude = latitude;
+        updatedData.longitude = longitude;
+      }
 
       let categoryIds = [];
       try {
