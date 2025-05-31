@@ -100,7 +100,7 @@ export const getCompaniesByCategory = async (req, res) => {
       },
     });
 
-console.log("companies:", companies);
+    console.log("companies:", companies);
     // 2. Filter companies in the same country (assuming you store country or region)
     const userCountry = await getCountryFromCoords(userLat, userLon);
     console.log("userCountry:", userCountry);
@@ -122,7 +122,7 @@ console.log("companies:", companies);
         }
         return a.distance - b.distance;
       });
-console.log("sortedcompanies: ", sortedCompanies.length)
+    console.log("sortedcompanies: ", sortedCompanies.length)
     res.json(sortedCompanies);
   } catch (err) {
     console.error('Error fetching companies by category:', err);
@@ -251,7 +251,10 @@ export const updateCompany = async (req, res) => {
             set: categoryIds.map(id => ({ id: parseInt(id) })),
           },
         },
-
+        include: {
+          categories: true,
+          projects: true
+        }
       });
 
       res.json(updated);
