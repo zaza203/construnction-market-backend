@@ -125,7 +125,7 @@ export const getCompaniesByCategory = async (req, res) => {
     //     return a.distance - b.distance;
     //   });
     // console.log("sortedcompanies: ", sortedCompanies.length)
-    res.json(sortedCompanies);
+    res.json(companies);
   } catch (err) {
     console.error('Error fetching companies by category:', err);
     res.status(500).json({
