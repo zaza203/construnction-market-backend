@@ -71,20 +71,19 @@ export const listCompaniesbyLocation = async (req, res) => {
 
 export const getCompaniesByCategory = async (req, res) => {
   const { categoryId } = req.params;
-  const { lon, lat } = req.query;
+  // const { lon, lat } = req.query;
 
-  console.log("lon:", lon, "lat:", lat);
   try {
     if (isNaN(parseInt(categoryId))) {
       return res.status(400).json({ error: 'Invalid category ID' });
     }
 
-    if (!lon || !lat) {
-      return res.status(400).json({ error: 'Longitude and latitude are required.' });
-    }
+    // if (!lon || !lat) {
+    //   return res.status(400).json({ error: 'Longitude and latitude are required.' });
+    // }
 
-    const userLat = parseFloat(lat);
-    const userLon = parseFloat(lon);
+    // const userLat = parseFloat(lat);
+    // const userLon = parseFloat(lon);
 
     const companies = await prisma.company.findMany({
       where: {
@@ -98,31 +97,34 @@ export const getCompaniesByCategory = async (req, res) => {
         categories: true,
         projects: true
       },
+      orderBy: {
+        viewCount: 'asc'
+      }
     });
 
-    console.log("companies:", companies);
-    // 2. Filter companies in the same country (assuming you store country or region)
-    const userCountry = await getCountryFromCoords(userLat, userLon);
-    console.log("userCountry:", userCountry);
-    const nearbyCompanies = companies.filter(c => c.country === userCountry || c.country_fr === userCountry);
-    console.log("nearbyCompanies:", nearbyCompanies.length);
-    // 3. Sort by distance, then viewCount
-    const sortedCompanies = nearbyCompanies
-      .map(company => ({
-        ...company,
-        distance: getDistance(
-          { latitude: userLat, longitude: userLon },
-          { latitude: company.latitude, longitude: company.longitude }
-        )
-      }))
-      .sort((a, b) => {
-        // Sort primarily by distance, then by viewCount
-        if (a.distance === b.distance) {
-          return a.viewCount - b.viewCount;
-        }
-        return a.distance - b.distance;
-      });
-    console.log("sortedcompanies: ", sortedCompanies.length)
+    // console.log("companies:", companies);
+    // // 2. Filter companies in the same country (assuming you store country or region)
+    // const userCountry = await getCountryFromCoords(userLat, userLon);
+    // console.log("userCountry:", userCountry);
+    // const nearbyCompanies = companies.filter(c => c.country === userCountry || c.country_fr === userCountry);
+    // console.log("nearbyCompanies:", nearbyCompanies.length);
+    // // 3. Sort by distance, then viewCount
+    // const sortedCompanies = nearbyCompanies
+    //   .map(company => ({
+    //     ...company,
+    //     distance: getDistance(
+    //       { latitude: userLat, longitude: userLon },
+    //       { latitude: company.latitude, longitude: company.longitude }
+    //     )
+    //   }))
+    //   .sort((a, b) => {
+    //     // Sort primarily by distance, then by viewCount
+    //     if (a.distance === b.distance) {
+    //       return a.viewCount - b.viewCount;
+    //     }
+    //     return a.distance - b.distance;
+    //   });
+    // console.log("sortedcompanies: ", sortedCompanies.length)
     res.json(sortedCompanies);
   } catch (err) {
     console.error('Error fetching companies by category:', err);
