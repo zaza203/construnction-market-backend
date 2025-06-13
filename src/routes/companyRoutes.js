@@ -11,7 +11,8 @@ import {
   getCompanyWithLowestViews,
   getProjectsByCompanyUsername,
   listCompaniesbyLocation,
-  getCompanyById
+  getCompanyById,
+  incrementContactClicks
 } from '../controllers/companyController.js';
 import { listAllProjects } from '../controllers/projectController.js';
 import projectRoutes from './projectRoutes.js';
@@ -21,8 +22,9 @@ import { authenticateToken } from '../middlewares/authMiddleware.js';
 const router = express.Router();
 
 router.get('/projects', authenticateToken, listAllProjects)
+router.post('/:id/contact-click', incrementContactClicks);
 router.get('/', listCompanies);
-router.get('/by_id', getCompanyById);
+router.get('/by_id/:id', getCompanyById);
 router.get('/by_location', listCompaniesbyLocation)
 router.get('/:username', getCompanyByUsername);
 router.post('/', upload.single('logo'), handleUploadErrors, createCompany);

@@ -4,11 +4,13 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js'
 import companyRoutes from './routes/companyRoutes.js'
+import activityRoutes from './routes/activityRoutes.js'
 import cors from 'cors';
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set('trust proxy', true);
 
 app.use(cors({
   origin: [
@@ -24,6 +26,7 @@ app.use(express.json());
 app.use('/api/users', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/companies', companyRoutes)
+app.use('/api/activity_logs', activityRoutes)
 app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads'),
   {
     setHeaders: (res) => {

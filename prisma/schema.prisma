@@ -60,6 +60,7 @@ model Company {
   linkedin     String?
   twitter      String?
   website      String?
+  number_of_click_to_contact Int @default(0)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   viewCount    Int         @default(0)
@@ -82,4 +83,14 @@ model Project {
   companyId   Int
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  action     String 
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
 }

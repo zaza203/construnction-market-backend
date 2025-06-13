@@ -27,13 +27,29 @@ export const listCompanies = async (_, res) => {
 export const getCompanyById = async (req, res) => {
   const { id } = req.params;
   try {
-    const project = await prisma.project.findUnique({
-      where: { id: parseInt(id) }
+    const companyId = Number(id);
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      include: { categories: true, projects: true },
     });
-    if (!project) return res.status(404).json({ error: 'Project not found' });
-    res.json(project);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (!company) return res.status(404).json({ message: 'Company not found' });
+    res.json(company);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const incrementContactClicks = async (req, res) => {
+    const { id } = req.params;
+  try {
+    const companyId = Number(id);
+    const updated = await prisma.company.update({
+      where: { id: companyId },
+      data: { number_of_click_to_contact: { increment: 1 } },
+    });
+    res.json({message: 'Count updated'});
+  } catch (error) {
+    res.status(500).json({ message: 'Error incrementing click count', error });
   }
 };
 
