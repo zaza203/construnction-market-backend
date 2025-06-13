@@ -24,6 +24,19 @@ export const listCompanies = async (_, res) => {
   }
 };
 
+export const getCompanyById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const project = await prisma.project.findUnique({
+      where: { id: parseInt(id) }
+    });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    res.json(project);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export const listCompaniesbyLocation = async (req, res) => {
   const { lon, lat } = req.query;
 

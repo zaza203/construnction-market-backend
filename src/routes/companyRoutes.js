@@ -10,7 +10,8 @@ import {
   getCompaniesByCategory,
   getCompanyWithLowestViews,
   getProjectsByCompanyUsername,
-  listCompaniesbyLocation
+  listCompaniesbyLocation,
+  getCompanyById
 } from '../controllers/companyController.js';
 import { listAllProjects } from '../controllers/projectController.js';
 import projectRoutes from './projectRoutes.js';
@@ -21,6 +22,7 @@ const router = express.Router();
 
 router.get('/projects', authenticateToken, listAllProjects)
 router.get('/', listCompanies);
+router.get('/by_id', getCompanyById);
 router.get('/by_location', listCompaniesbyLocation)
 router.get('/:username', getCompanyByUsername);
 router.post('/', upload.single('logo'), handleUploadErrors, createCompany);
